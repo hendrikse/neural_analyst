@@ -9,6 +9,8 @@ from sklearn.linear_model import Perceptron
 
 from sklearn.metrics import f1_score, classification_report
 
+from sklearn.ensemble import RandomForestClassifier
+
 import torch
 from sklearn.naive_bayes import MultinomialNB
 from torch.autograd import Variable
@@ -16,13 +18,15 @@ from torchvision import datasets, transforms
 from torch import nn, optim
 import torch.nn.functional as F
 
-df = pd.read_csv('SMSSpamCollection', delimiter='\t',header=None)
-df.rename(columns = {0:'label',1: 'text'}, inplace = True)
+import matplotlib.pyplot as plt
 
-X = df['text']
-y = df['label']
+df = pd.read_csv('data/test.csv')
+#df.rename(columns = {0:'label',1: 'text'}, inplace = True)
 
-print(df.loc[df['label'] == 'ham'].count())
+X = df['responseBody'].astype('U')
+y = df['attacked']
+
+#print(df.loc[df['label'] == 'ham'].count())
 
 seed = 5
 test_size = 0.33
@@ -42,37 +46,80 @@ print(X_train.shape)
 # Naive Bayes
 mnb_classifier = MultinomialNB()
 mnb_classifier.fit(X_train, y_train)
-predictions =  mnb_classifier.predict(X_test)
-score = accuracy_score(y_test, predictions)
-f_score = f1_score(y_test, predictions, average='micro')
+mnb_predictions =  mnb_classifier.predict(X_test)
+score = accuracy_score(y_test, mnb_predictions)
+f_score = f1_score(y_test, mnb_predictions, average='micro')
 print("The accuracy score (MultinomialNB) is:", score)
 print("The F score-Micro (MultinomialNB) is:", f_score)
+
+
+# Random Forest
+rf_clf = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
+rf_clf.fit(X_train, y_train)
+rf_predictions =  rf_clf.predict(X_test)
+score = accuracy_score(y_test, rf_predictions)
+f_score = f1_score(y_test, rf_predictions, average='micro')
+print("The accuracy score (Random Forest) is:", score)
+print("The F score-Micro (Random Forest) is:", f_score)
+
+from sklearn import metrics
 
 
 # Logistic Regression
 lr_classifier = LogisticRegressionCV()
 lr_classifier.fit(X_train, y_train)
-predictions = lr_classifier.predict(X_test)
-score = accuracy_score(y_test, predictions)
-f_score = f1_score(y_test, predictions, average='micro')
+lt_predictions = lr_classifier.predict(X_test)
+score = accuracy_score(y_test, lt_predictions)
+f_score = f1_score(y_test, lt_predictions, average='micro')
 print("The accuracy score (Logistic Regression) is:", score)
 print("The F score-Micro (Logistic Regression) is:", f_score)
+
+cnf_matrix = metrics.confusion_matrix(y_test, rf_predictions)
+
+# import required modules
+import seaborn as sns
+
+class_names=[0,1] # name  of classes
+fig, ax = plt.subplots()
+tick_marks = np.arange(len(class_names))
+plt.xticks(tick_marks, class_names)
+plt.yticks(tick_marks, class_names)
+# create heatmap
+sns.heatmap(pd.DataFrame(cnf_matrix), annot=True, cmap="YlGnBu" ,fmt='g')
+ax.xaxis.set_label_position("top")
+plt.tight_layout()
+plt.title('Confusion matrix', y=1.1)
+plt.ylabel('Actual label')
+plt.xlabel('Predicted label')
+
+
+print("Accuracy:",metrics.accuracy_score(y_test, lt_predictions))
+print("Precision:",metrics.precision_score(y_test, lt_predictions))
+print("Recall:",metrics.recall_score(y_test, lt_predictions))
+
+
+y_pred_proba = lr_classifier.predict_proba(X_test)[::,1]
+fpr, tpr, _ = metrics.roc_curve(y_test,  y_pred_proba)
+auc = metrics.roc_auc_score(y_test, y_pred_proba)
+plt.plot(fpr,tpr,label="data 1, auc="+str(auc))
+plt.legend(loc=4)
+plt.show()
 
 # Perceptron
 perceptron_classifier = Perceptron(random_state=11)
 perceptron_classifier.fit(X_train, y_train)
-predictions = perceptron_classifier.predict(X_test)
-score = accuracy_score(y_test, predictions)
-f_score = f1_score(y_test, predictions, average='micro')
+perc_predictions = perceptron_classifier.predict(X_test)
+score = accuracy_score(y_test, perc_predictions)
+f_score = f1_score(y_test, perc_predictions, average='micro')
 print("The accuracy score (Perceptron) is:", score)
 print("The F score-Micro (Perceptron) is:", f_score)
 
 # Support Vector Machine
 svm_classifier = svm.SVC(gamma='scale')
 svm_classifier.fit(X_train, y_train)
-predictions = svm_classifier.predict(X_test)
-score = accuracy_score(y_test, predictions)
-f_score = f1_score(y_test, predictions, average='micro')
+svm_predictions = svm_classifier.predict(X_test)
+score = accuracy_score(y_test, svm_predictions)
+f_score = f1_score(y_test, svm_predictions, average='micro')
 print("The accuracy score (SVM) is:", score)
 print("The F score-Micro (SVM) is:", f_score)
 

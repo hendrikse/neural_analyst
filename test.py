@@ -24,27 +24,38 @@ def remove_multilines(multilines):
     return multilines.replace('\r\n', ' ')
 
 
-import urllib.parse
-from string import Template
-import json
-with open('data/xss_example.txt', 'r') as f:
-    message = json.load(f)
-template = message['responseBody']
-attacks = open("data/xss-payload-list.txt", "r")
-data = {}
-for attack in attacks:
-    print(attack)
-    message_id = hash(attack)
-    message['responseBody'] = Template(template).substitute(attack_response=attack, attack_request=urllib.parse.quote(attack))
-
-    message_content = {
-        'messageId': message_id,
-        'requestHeader': message['requestHeader'],
-        'requestBody': message['requestBody'],
-        'responseHeader': remove_multilines(message['responseHeader']),
-        'responseBody': parse_response_body(message['responseBody']),
-        'attacked': 0
-    }
-    data[message_id] = message_content
-print(data)
+# import urllib.parse
+# from string import Template
+# import json
+# with open('data/xss_example.txt', 'r') as f:
+#     message = json.load(f)
+# template = message['responseBody']
+# attacks = open("data/xss-payload-list.txt", "r")
+# data = {}
+# for attack in attacks:
+#     print(attack)
+#     message_id = hash(attack)
+#     message['responseBody'] = Template(template).substitute(attack_response=attack, attack_request=urllib.parse.quote(attack))
+#
+#     message_content = {
+#         'messageId': message_id,
+#         'requestHeader': message['requestHeader'],
+#         'requestBody': message['requestBody'],
+#         'responseHeader': remove_multilines(message['responseHeader']),
+#         'responseBody': parse_response_body(message['responseBody']),
+#         'attacked': 0
+#     }
+#     data[message_id] = message_content
+# print(data)
 #print(parsed_data.keys())
+
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+driver = webdriver.Remote(
+   command_executor='http://127.0.0.1:4444/wd/hub',
+   desired_capabilities=DesiredCapabilities.FIREFOX)
+
+driver.get("http://www.python.org")
+print(driver.title)
+driver.close()

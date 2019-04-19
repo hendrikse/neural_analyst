@@ -11,7 +11,7 @@ from string import Template
 # Change to scan targeting web application by url
 TARGET = 'http://0.0.0.0:32779'
 # By default ZAP API client will connect to port 8080
-PROXY_ADDRESS = 'http://127.0.0.1:8080/'
+PROXY_ADDRESS = 'http://127.0.0.1:8090/'
 # Change to match the API key set in ZAP, or use None if the API key is disabled
 API_KEY = 'ee2remb6f90fa095sne3mop3h7'
 
@@ -134,26 +134,25 @@ def generate_syntethic_data(data):
     with open('data/xss_example.txt', 'r') as f:
         message = json.load(f)
     template = message['responseBody']
-    attacks = open("data/xss-payload-list.txt", "r")
-    counter = 0
-    for attack in attacks:
-        message_id = hash(attack)
-        message['responseBody'] = Template(template).substitute(attack_response=attack,
-                                                                attack_request=quote(attack))
 
-        message_content = {
-            'messageId': message_id,
-            'requestHeader': message['requestHeader'],
-            'requestBody': message['requestBody'],
-            'responseHeader': remove_multilines(message['responseHeader']),
-            'responseBody': parse_response_body(message['responseBody']),
-            'attacked': 1
-        }
-        data[message_id] = message_content
-        print(message_id)
-        print(data[message_id])
-        counter += 1
-    print(counter)
+    for i in range(1, 7):
+        attacks = open("data/xss-payload-list.txt", "r")
+        for attack in attacks:
+            message_id = hash(attack + str(i))
+            message['responseBody'] = Template(template).substitute(attack_response=attack, attack_request=quote(attack))
+
+            message_content = {
+                'messageId': message_id,
+                'requestHeader': message['requestHeader'],
+                'requestBody': message['requestBody'],
+                'responseHeader': remove_multilines(message['responseHeader']),
+                'responseBody': parse_response_body(message['responseBody']),
+                'attacked': 1
+            }
+            data[message_id] = message_content
+            print(message_id)
+            print(data[message_id])
+        attacks.close()
     attacks.close()
     return data
 

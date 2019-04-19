@@ -1,10 +1,11 @@
+import unittest
 from selenium import webdriver
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 import time
 from pprint import pprint
 from zapv2 import ZAPv2
 
-SELENIUM_HUB_ADDRESS = 'http://0.0.0.0:4444/wd/hub'
+SELENIUM_HUB_ADDRESS = 'http://0.0.0.0:32781/wd/hub'
 APIKEY = 'None' # Change to match the API key set in ZAP
 TARGET_ADRESS = "http://172.17.0.4"
 
@@ -28,7 +29,7 @@ zap = ZAPv2(apikey=APIKEY)
 
 
 # Set zap proxy with defined docker ip address
-PROXY_ADDRESS = "172.17.0.5:8090"
+PROXY_ADDRESS = "172.17.0.6:8080"
 proxy = Proxy()
 proxy.proxy_type = ProxyType.MANUAL
 proxy.http_proxy = PROXY_ADDRESS
