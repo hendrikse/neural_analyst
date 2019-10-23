@@ -177,3 +177,19 @@ def test(epochs):
             print ("loss: ", loss.item())
             pred = torch.max(y_pred, 1)[1].eq(y_test).sum()
             print ("acc (%): ", 100*pred/len(x_test))
+
+            
+def y_prediction_nn_model(model, x_data):
+    return model(x_data)
+  
+def save_nn_model(model, path):
+    torch.save(model.state_dict(), PATH)
+ 
+def load_nn_model(path):
+    input = 1000
+    hidden=100
+    output = 2
+    model = Model(input, hidden, output)
+    
+    model.load_state_dict(torch.load(path))
+    model.eval()
